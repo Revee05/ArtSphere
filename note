@@ -1,8 +1,0 @@
-http://localhost:8080/register  (post)
-http://localhost:8080/login (post)
-http://localhost:8080/refresh-token (get)
-http://localhost:8080/add-feeds (post)
-http://localhost:8080/get-feeds (get)
-http://localhost:8080/get-feeds/{id} (get)
-http://localhost:8080/predict (post)
-http://localhost:8080/logout (delete)
