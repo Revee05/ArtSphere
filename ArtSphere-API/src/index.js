@@ -1,8 +1,11 @@
 //Server
 const Hapi = require("@hapi/hapi");
-const JWT = require("hapi-auth-jwt2"); // Import plugin hapi-auth-jwt2
-const loadModel = require("./services/loadModel");
-//..............
+const Boom = require('@hapi/boom');
+
+//package
+const { logger } = require('../src/services/ML_stuff/logger');
+
+//..............env
 require("dotenv").config();
 
 //Var Routes
@@ -11,6 +14,7 @@ const authRoutes = require("./routes/authRoutes");
 const predictRoutes = require("./routes/predictRoutes");
 
 const init = async () => {
+
   const server = Hapi.server({
     port: process.env.PORT || 8080,
     host: process.env.HOST || "localhost",
@@ -24,8 +28,10 @@ const init = async () => {
   //all routes
   server.route(authRoutes);
   server.route(homeRoutes);
-  //server.route(predictRoutes);
+  server.route(predictRoutes);
 
+
+  //default routes
   server.route({
     method: "GET",
     path: "/",
@@ -34,8 +40,21 @@ const init = async () => {
     },
   });
 
-  // const model = await loadModel();
-  // server.app.model = model;
+  //handling error
+  server.ext('onPreResponse', (request, h) => {
+    const response = request.response;
+    if (response.isBoom) {
+      const error = response.output.payload;
+      logger.error('Error response: %o', error);
+      return h.response({
+        statusCode: error.statusCode,
+        error: error.error,
+        message: error.message
+      }).code(error.statusCode);
+    }
+    return h.continue;
+  });
+
 
   await server.start();
 
